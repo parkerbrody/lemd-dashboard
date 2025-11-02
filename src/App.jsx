@@ -46,9 +46,6 @@ function App() {
             justifyContent: "flex-end",
           }}
         >
-          {/* Upload button (demo only) */}
-          <UploadPlaceholder />
-          
           <FilterBar
             selectedFeature={selectedFeature}
             setSelectedFeature={setSelectedFeature}
@@ -65,6 +62,10 @@ function App() {
           </button>
         </div>
       </header>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+        <UploadPlaceholder />
+      </div>
 
       {/* Dashboard grid */}
       <div

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+import API_BASE_URL from "../config";
+
 const FilterBar = ({
   selectedFeature,
   setSelectedFeature,
@@ -17,7 +19,7 @@ const FilterBar = ({
 
   // Fetch user/team metadata
   useEffect(() => {
-    fetch("https://parkerlbrody-lemd.hf.space/metadata")
+    fetch(`${API_BASE_URL}/metadata`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "ok") {

@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { BarChart2, LineChart as LineChartIcon } from "lucide-react";
+import API_BASE_URL from "../config";
 
 const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, selectedGroup }) => {
   const [trendData, setTrendData] = useState([]);
@@ -63,7 +64,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
         if (selectedGroup) queryParams.append("group", selectedGroup);
 
         const res = await fetch(
-          `https://parkerlbrody-lemd.hf.space/trend/${feature.toLowerCase()}?${queryParams.toString()}`
+          `${API_BASE_URL}/trend/${feature.toLowerCase()}?${queryParams.toString()}`
         );
         const data = await res.json();
 

@@ -4,6 +4,7 @@ import ByTopic from "./components/ByTopic";
 import EngagementTrend from "./components/EngagementTrend";
 import FeatureTrend from "./components/FeatureTrend";
 import FilterBar from "./components/FilterBar";
+import UploadPlaceholder from "./components/UploadPlaceholder";
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -61,6 +62,8 @@ function App() {
           </button>
         </div>
       </header>
+
+      <UploadPlaceholder />
 
       {/* Dashboard grid */}
       <div

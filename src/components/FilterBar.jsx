@@ -17,7 +17,7 @@ const FilterBar = ({
 
   // Fetch user/team metadata
   useEffect(() => {
-    fetch("http://localhost:8000/metadata")
+    fetch("https://parkerlbrody-lemd.hf.space/metadata")
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "ok") {

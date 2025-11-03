@@ -81,7 +81,7 @@ const EngagementTrend = ({ startDate, endDate, selectedGroup }) => {
           ENGAGEMENT TREND
         </h3>
         <p style={{ fontSize: "13px", lineHeight: "1.4", margin: 0 }}>
-          View overall engagement index over time. Adjust date range or select a
+          View overall engagement over time. Adjust date range or select a
           team/user to filter.
         </p>
       </div>
@@ -99,7 +99,7 @@ const EngagementTrend = ({ startDate, endDate, selectedGroup }) => {
         }}
       >
         <h2 style={{ fontWeight: "700", marginBottom: "5px", textAlign: "center" }}>
-          ENGAGEMENT INDEX TREND
+          ENGAGEMENT TREND
         </h2>
 
         <div style={{ width: "100%", height: "180px", marginTop: "5px" }}>

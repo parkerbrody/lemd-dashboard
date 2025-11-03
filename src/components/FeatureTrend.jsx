@@ -18,6 +18,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
   const [trendData, setTrendData] = useState([]);
   const [chartType, setChartType] = useState("line");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const defaultStart = useRef(null);
   const defaultEnd = useRef(null);
 
@@ -51,10 +52,14 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
 
   // --- Fetch and normalize trend data ---
   useEffect(() => {
-    if (!feature) return;
+    if (!feature) {
+      setTrendData([]);
+      return;
+    }
 
     const fetchTrendData = async () => {
       setLoading(true);
+      setError(null);
       try {
         const queryParams = new URLSearchParams();
         const effectiveStart = startDate || defaultStart.current;
@@ -63,9 +68,11 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
         if (effectiveEnd) queryParams.append("end_date", effectiveEnd);
         if (selectedGroup) queryParams.append("group", selectedGroup);
 
-        const res = await fetch(
-          `${API_BASE_URL}/trend/${feature.toLowerCase()}?${queryParams.toString()}`
-        );
+        const url = `${API_BASE_URL}/trend/${feature.toLowerCase()}?${queryParams.toString()}`;
+        console.log("📊 Fetching:", url);
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
         if (data.status === "ok" && data.trend) {
@@ -73,20 +80,15 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
             date,
             ...values,
           }));
-
-          // Fill gaps in the date range with empty records
           const range = getDateRange(effectiveStart, effectiveEnd);
-          const merged = range.map((d) => {
-            const found = parsed.find((p) => p.date === d);
-            return found || { date: d };
-          });
-
+          const merged = range.map((d) => parsed.find((p) => p.date === d) || { date: d });
           setTrendData(merged);
         } else {
           setTrendData([]);
         }
       } catch (err) {
-        console.error("Error fetching trend:", err);
+        console.error("❌ Error fetching trend:", err);
+        setError("Failed to load trend data.");
         setTrendData([]);
       } finally {
         setLoading(false);
@@ -111,10 +113,10 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
       : ["yes", "no"];
 
   const formatDate = (d) =>
-    new Date(d).toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-    });
+    new Date(d).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" });
+
+  // --- Guards ---
+  const showEmpty = !loading && !error && (!trendData || trendData.length === 0);
 
   return (
     <div
@@ -124,12 +126,12 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
         borderRadius: "0px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         overflow: "hidden",
-        minHeight: "220px",
+        minHeight: "240px",
         height: "auto",
         fontFamily: "sans-serif",
       }}
     >
-      {/* Left panel */}
+      {/* Left caption area */}
       <div
         style={{
           backgroundColor: "#0e1a2b",
@@ -152,7 +154,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
           MONITOR CHANGE
         </h3>
         <p style={{ fontSize: "13px", lineHeight: "1.4", margin: 0 }}>
-          Select a date window to view your team’s {feature} trend over time.
+          Select a date window to view your team’s {feature || "feature"} trend over time.
         </p>
       </div>
 
@@ -164,7 +166,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "flex-start",
-          padding: "5px 25px 10px 25px", // ⬅️ tighter padding so chart fits
+          padding: "5px 25px 10px 25px",
           color: "#1e3558",
         }}
       >
@@ -172,7 +174,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
           {feature ? feature.toUpperCase() : "FEATURE"} TREND
         </h2>
 
-        {/* Caption + chart type toggle */}
+        {/* Chart type toggle */}
         <div
           style={{
             display: "flex",
@@ -182,16 +184,9 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
             marginBottom: "5px",
           }}
         >
-          <div
-            style={{
-              color: "#8c7732",
-              fontWeight: 400,
-              fontSize: "13px",
-            }}
-          >
+          <div style={{ color: "#8c7732", fontWeight: 400, fontSize: "13px" }}>
             Set time period
           </div>
-
           <div style={{ display: "flex", gap: "8px" }}>
             <button
               onClick={() => setChartType("line")}
@@ -224,13 +219,14 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
         <div style={{ width: "100%", height: "180px", marginTop: "5px" }}>
           {loading ? (
             <p style={{ color: "#8c7732" }}>Loading...</p>
-          ) : trendData.length > 0 ? (
+          ) : error ? (
+            <p style={{ color: "#c74a3a" }}>{error}</p>
+          ) : showEmpty ? (
+            <p style={{ color: "#8c7732" }}>No data available for this feature.</p>
+          ) : (
             <ResponsiveContainer width="100%" height="100%">
               {chartType === "line" ? (
-                <LineChart
-                  data={trendData}
-                  margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
-                >
+                <LineChart data={trendData} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="date"
@@ -241,7 +237,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
                   />
                   <YAxis
                     domain={[0, 100]}
-                    ticks={[0, 25, 50, 75, 100]} // ⬅️ added more ticks
+                    ticks={[0, 25, 50, 75, 100]}
                     tick={{ fontSize: 11 }}
                   />
                   <Tooltip labelFormatter={formatDate} />
@@ -259,11 +255,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
                   ))}
                 </LineChart>
               ) : (
-                <BarChart
-                  data={trendData}
-                  margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
-                  barSize={25}
-                >
+                <BarChart data={trendData} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="date"
@@ -274,7 +266,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
                   />
                   <YAxis
                     domain={[0, 100]}
-                    ticks={[0, 25, 50, 75, 100]} // ⬅️ added more ticks
+                    ticks={[0, 25, 50, 75, 100]}
                     tick={{ fontSize: 11 }}
                   />
                   <Tooltip labelFormatter={formatDate} />
@@ -285,8 +277,6 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
                 </BarChart>
               )}
             </ResponsiveContainer>
-          ) : (
-            <p style={{ color: "#8c7732" }}>No data available for this feature.</p>
           )}
         </div>
       </div>

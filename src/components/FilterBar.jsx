@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-
 import API_BASE_URL from "../config";
 
 const FilterBar = ({
@@ -15,7 +14,16 @@ const FilterBar = ({
   const [metadata, setMetadata] = useState({ users: [], teams: [] });
   const [submenu, setSubmenu] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   let closeTimeout = null;
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 800);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Fetch user/team metadata
   useEffect(() => {
@@ -34,8 +42,9 @@ const FilterBar = ({
       .catch((err) => console.error("Failed to fetch metadata:", err));
   }, []);
 
-  // Close with delay for smooth hover
+  // Hover handling for desktop submenu
   const handleMouseLeave = () => {
+    if (isMobile) return;
     closeTimeout = setTimeout(() => {
       setSubmenu(null);
       setMenuOpen(false);
@@ -45,8 +54,15 @@ const FilterBar = ({
     if (closeTimeout) clearTimeout(closeTimeout);
   };
 
+  // Shared handler
+  const handleSelect = (value) => {
+    setSelectedGroup(value);
+    setMenuOpen(false);
+  };
+
   return (
     <div
+      className="filter-bar"
       style={{
         display: "flex",
         gap: "10px",
@@ -120,65 +136,108 @@ const FilterBar = ({
 
         {/* Dropdown menu */}
         {menuOpen && (
-          <div style={menuContainerStyle}>
-            {/* Team Member submenu */}
+          isMobile ? (
+            // --- MOBILE FULLSCREEN MODAL ---
             <div
-              onMouseEnter={() => setSubmenu("member")}
-              onClick={() => setSubmenu(submenu === "member" ? null : "member")}
-              style={submenuItemStyle}
+              style={mobileOverlayStyle}
+              onClick={() => setMenuOpen(false)}
             >
-              Team Member ▶
-              {submenu === "member" && (
-                <div style={submenuPanelStyle}>
-                  {metadata.users.length > 0 ? (
-                    metadata.users.map((user) => (
-                      <div
-                        key={user}
-                        style={submenuItemStyle}
-                        onClick={() => {
-                          setSelectedGroup(user);
-                          setMenuOpen(false);
-                        }}
-                      >
-                        {user}
-                      </div>
-                    ))
-                  ) : (
-                    <div style={submenuItemStyle}>No users found</div>
-                  )}
-                </div>
-              )}
-            </div>
+              <div
+                style={mobileMenuStyle}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h4 style={{ marginTop: 0, color: "#1e3558" }}>Group By</h4>
 
-            {/* Team submenu */}
-            <div
-              onMouseEnter={() => setSubmenu("team")}
-              onClick={() => setSubmenu(submenu === "team" ? null : "team")}
-              style={submenuItemStyle}
-            >
-              Team ▶
-              {submenu === "team" && (
-                <div style={submenuPanelStyle}>
-                  {metadata.teams.length > 0 ? (
-                    metadata.teams.map((team) => (
-                      <div
-                        key={team}
-                        style={submenuItemStyle}
-                        onClick={() => {
-                          setSelectedGroup(team);
-                          setMenuOpen(false);
-                        }}
-                      >
-                        {team}
-                      </div>
-                    ))
-                  ) : (
-                    <div style={submenuItemStyle}>No teams found</div>
-                  )}
-                </div>
-              )}
+                <section style={sectionStyle}>
+                  <strong>Team Members</strong>
+                  {metadata.users.map((user) => (
+                    <div
+                      key={user}
+                      style={submenuItemStyle}
+                      onClick={() => handleSelect(user)}
+                    >
+                      {user}
+                    </div>
+                  ))}
+                </section>
+
+                <section style={sectionStyle}>
+                  <strong>Teams</strong>
+                  {metadata.teams.map((team) => (
+                    <div
+                      key={team}
+                      style={submenuItemStyle}
+                      onClick={() => handleSelect(team)}
+                    >
+                      {team}
+                    </div>
+                  ))}
+                </section>
+
+                <button
+                  style={mobileCloseButton}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Close
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            // --- DESKTOP MENU ---
+            <div style={menuContainerStyle}>
+              {/* Team Member submenu */}
+              <div
+                onMouseEnter={() => setSubmenu("member")}
+                onClick={() => setSubmenu(submenu === "member" ? null : "member")}
+                style={submenuItemStyle}
+              >
+                Team Member ▶
+                {submenu === "member" && (
+                  <div style={submenuPanelStyle}>
+                    {metadata.users.length > 0 ? (
+                      metadata.users.map((user) => (
+                        <div
+                          key={user}
+                          style={submenuItemStyle}
+                          onClick={() => handleSelect(user)}
+                        >
+                          {user}
+                        </div>
+                      ))
+                    ) : (
+                      <div style={submenuItemStyle}>No users found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Team submenu */}
+              <div
+                onMouseEnter={() => setSubmenu("team")}
+                onClick={() => setSubmenu(submenu === "team" ? null : "team")}
+                style={submenuItemStyle}
+              >
+                Team ▶
+                {submenu === "team" && (
+                  <div style={submenuPanelStyle}>
+                    {metadata.teams.length > 0 ? (
+                      metadata.teams.map((team) => (
+                        <div
+                          key={team}
+                          style={submenuItemStyle}
+                          onClick={() => handleSelect(team)}
+                        >
+                          {team}
+                        </div>
+                      ))
+                    ) : (
+                      <div style={submenuItemStyle}>No teams found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>
@@ -237,6 +296,47 @@ const submenuPanelStyle = {
   minWidth: "150px",
   paddingLeft: "5px",
   boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+};
+
+/* --- Mobile modal styles --- */
+const mobileOverlayStyle = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100vw",
+  height: "100vh",
+  background: "rgba(0, 0, 0, 0.4)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 9999,
+};
+
+const mobileMenuStyle = {
+  background: "white",
+  borderRadius: "12px",
+  padding: "20px",
+  width: "90%",
+  maxWidth: "380px",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+};
+
+const sectionStyle = {
+  borderTop: "1px solid #ccc",
+  marginTop: "8px",
+  paddingTop: "8px",
+};
+
+const mobileCloseButton = {
+  marginTop: "15px",
+  width: "100%",
+  background: "#1e3558",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  padding: "8px 0",
+  cursor: "pointer",
+  fontSize: "14px",
 };
 
 export default FilterBar;

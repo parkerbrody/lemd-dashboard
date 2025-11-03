@@ -107,9 +107,17 @@ function App() {
           gap: "20px",
         }}
       >
-        <EngagementSnapshot data={engagementData} loading={loading} error={error} />
+        <EngagementSnapshot
+          startDate={startDate}
+          endDate={endDate}
+          selectedGroup={selectedGroup}
+        />
         <ByTopic feature={selectedFeature} />
-        <EngagementTrend data={engagementData} loading={loading} error={error} />
+        <EngagementTrend
+          startDate={startDate}
+          endDate={endDate}
+          selectedGroup={selectedGroup}
+        />
         <FeatureTrend
           feature={selectedFeature}
           startDate={startDate}

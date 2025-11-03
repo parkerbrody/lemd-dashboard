@@ -1,26 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import API_BASE_URL from "../config";
 
-const EngagementTrend = () => {
-  const [trendData, setTrendData] = useState([]);
-  const [loading, setLoading] = useState(true);
+const EngagementTrend = ({ data, loading, error }) => {
+  const trendData = data?.trend || [];
 
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/engagement`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "ok" && data.trend) {
-          setTrendData(data.trend);
-        } else {
-          console.warn("Trend fetch failed:", data.message);
-        }
-      })
-      .catch((err) => console.error("Error fetching engagement trend:", err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Map trend points into SVG coordinates
+  // SVG setup
   const width = 280;
   const height = 120;
   const xStep = width / (trendData.length - 1 || 1);
@@ -89,7 +73,6 @@ const EngagementTrend = () => {
           ENGAGEMENT TREND
         </h2>
 
-        {/* Chart */}
         <svg
           width="100%"
           height="130"
@@ -114,7 +97,7 @@ const EngagementTrend = () => {
             />
           ))}
 
-          {/* Trend line */}
+          {/* Trend line + points */}
           {!loading && trendData.length > 0 && (
             <>
               <motion.polyline
@@ -145,16 +128,15 @@ const EngagementTrend = () => {
             </>
           )}
 
-          {/* Loading shimmer */}
+          {/* Loading / Error */}
           {loading && (
-            <text
-              x="160"
-              y="70"
-              textAnchor="middle"
-              fontSize="14"
-              fill="#8c7732"
-            >
+            <text x="160" y="70" textAnchor="middle" fontSize="14" fill="#8c7732">
               Loading...
+            </text>
+          )}
+          {error && (
+            <text x="160" y="70" textAnchor="middle" fontSize="13" fill="red">
+              Failed to load trend
             </text>
           )}
 
@@ -190,7 +172,6 @@ const EngagementTrend = () => {
           ))}
         </svg>
 
-        {/* Bottom caption */}
         <div
           style={{
             marginTop: "5px",

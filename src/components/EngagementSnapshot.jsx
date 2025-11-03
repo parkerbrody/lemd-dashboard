@@ -1,37 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import API_BASE_URL from "../config";
 
-const EngagementSnapshot = () => {
-  const [value, setValue] = useState(0);
-  const [loading, setLoading] = useState(true);
+const EngagementSnapshot = ({ data, loading, error }) => {
+  const value = loading || !data ? 0 : data.current ?? 0;
   const size = 200;
   const thickness = 20;
   const radius = size / 2;
   const innerRadius = radius - thickness - 10;
-
-  useEffect(() => {
-    // Fetch engagement score from backend
-    fetch(`${API_BASE_URL}/engagement`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "ok") {
-          setValue(data.current);
-        } else {
-          console.warn("Failed to load engagement:", data.message);
-          setValue(70); // fallback
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching engagement:", err);
-        setValue(70);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
   const targetRotation = -90 + (value * 180) / 100;
 
-  // Helper to make a semicircular arc path
   const describeArc = (startAngle, endAngle) => {
     const polarToCartesian = (r, angle) => ({
       x: radius + r * Math.cos((angle * Math.PI) / 180),
@@ -94,7 +71,6 @@ const EngagementSnapshot = () => {
           ENGAGEMENT SNAPSHOT
         </h2>
 
-        {/* Gauge */}
         <div
           style={{
             position: "relative",
@@ -103,19 +79,14 @@ const EngagementSnapshot = () => {
             overflow: "visible",
           }}
         >
-          <svg
-            width={size}
-            height={size / 2}
-            viewBox={`0 0 ${size} ${size / 2}`}
-            style={{ overflow: "visible" }}
-          >
+          <svg width={size} height={size / 2} viewBox={`0 0 ${size} ${size / 2}`}>
             {/* Colored arcs */}
             <path d={describeArc(180, 135)} fill="#c74a3a" />
             <path d={describeArc(135, 90)} fill="#c6933a" />
             <path d={describeArc(90, 45)} fill="#d1b243" />
             <path d={describeArc(45, 0)} fill="#6d9b6b" />
 
-            {/* Mask to form a gauge band */}
+            {/* Mask */}
             <path
               d={`
                 M ${radius - innerRadius} ${radius}
@@ -129,7 +100,7 @@ const EngagementSnapshot = () => {
           </svg>
 
           {/* Needle */}
-          {!loading && (
+          {!loading && !error && (
             <motion.div
               initial={{ rotate: -90 }}
               animate={{ rotate: targetRotation }}
@@ -166,7 +137,7 @@ const EngagementSnapshot = () => {
             }}
           />
 
-          {/* Loading shimmer */}
+          {/* Loading / Error */}
           {loading && (
             <div
               style={{
@@ -182,9 +153,23 @@ const EngagementSnapshot = () => {
               Loading...
             </div>
           )}
+          {error && (
+            <div
+              style={{
+                position: "absolute",
+                top: "40%",
+                left: 0,
+                right: 0,
+                color: "red",
+                fontSize: "14px",
+                textAlign: "center",
+              }}
+            >
+              Failed to load
+            </div>
+          )}
         </div>
 
-        {/* Caption below gauge */}
         <div
           style={{
             marginTop: "20px",

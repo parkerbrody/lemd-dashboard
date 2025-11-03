@@ -124,7 +124,8 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
         borderRadius: "0px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         overflow: "hidden",
-        minHeight: "340px", // ⬅️ allows flexibility, taller cards
+        minHeight: "220px",
+        height: "auto",
         fontFamily: "sans-serif",
       }}
     >

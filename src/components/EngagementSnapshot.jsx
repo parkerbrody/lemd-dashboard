@@ -32,7 +32,7 @@ const EngagementSnapshot = () => {
         boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         overflow: "visible",
         height: "auto",
-        minHeight: "250px",
+        minHeight: "220px",
         fontFamily: "sans-serif",
       }}
     >

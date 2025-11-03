@@ -12,7 +12,8 @@ const EngagementTrend = () => {
         borderRadius: "0px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         overflow: "hidden",
-        height: "340px",
+        minHeight: "220px",
+        height: "auto",
         fontFamily: "sans-serif",
       }}
     >

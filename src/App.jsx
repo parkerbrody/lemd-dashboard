@@ -29,39 +29,47 @@ function App() {
       <header
         style={{
           display: "flex",
+          flexWrap: "wrap",         // ✅ allows wrapping on small screens
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1.5rem",
-        }}
-      >
-        <h1>ABC COMPANY DASHBOARD</h1>
+       alignItems: "center",
+       gap: "1rem",              // ✅ adds breathing room when wrapped
+       marginBottom: "1.5rem",
+     }}
+   >
+     <h1
+       style={{
+         flex: "1 1 100%",       // ✅ ensures the title spans full width when wrapped
+         fontSize: "clamp(1.2rem, 2vw + 1rem, 2rem)", // responsive font sizing
+       }}
+     >
+       ABC COMPANY DASHBOARD
+     </h1>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            paddingRight: "5rem",   // adds space from the right edge
-            maxWidth: "80%",         // ensures dropdowns don’t overflow
-            justifyContent: "flex-end",
-          }}
-        >
-          <FilterBar
-            selectedFeature={selectedFeature}
-            setSelectedFeature={setSelectedFeature}
-            startDate={startDate}
-            setStartDate={setStartDate}
-            endDate={endDate}
-            setEndDate={setEndDate}
-            selectedGroup={selectedGroup}
-            setSelectedGroup={setSelectedGroup}
-          />
-
-          <button onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? "🌞" : "🌙"}
-          </button>
-        </div>
-      </header>
+     <div
+       style={{
+         display: "flex",
+         flexWrap: "wrap",
+         alignItems: "center",
+         gap: "1rem",
+         justifyContent: "flex-end",
+         flex: "1 1 auto",
+       }}
+     >
+       <FilterBar
+         selectedFeature={selectedFeature}
+         setSelectedFeature={setSelectedFeature}
+         startDate={startDate}
+         setStartDate={setStartDate}
+         endDate={endDate}
+         setEndDate={setEndDate}
+         selectedGroup={selectedGroup}
+         setSelectedGroup={setSelectedGroup}
+       />
+       <button onClick={() => setDarkMode(!darkMode)}>
+         {darkMode ? "🌞" : "🌙"}
+       </button>
+     </div>
+   </header>
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
         <UploadPlaceholder />
@@ -71,9 +79,8 @@ function App() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gridTemplateRows: "repeat(2, 1fr)",
           gap: "20px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
           gridAutoRows: "minmax(320px, auto)", // ⬅️ taller module cards
           alignItems: "stretch",
         }}

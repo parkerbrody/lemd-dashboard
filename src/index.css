@@ -77,9 +77,8 @@ button:hover {
   padding: 1rem;
 }
 
-/* --- Responsive layout for mobile and narrow screens --- */
-@media (max-width: 1100px), (orientation: portrait) {
-  /* Stack the header elements vertically */
+/* Force mobile stacking on portrait or narrow-ish screens */
+@media (max-width: 1100px), (max-height: 900px), (orientation: portrait) {
   header {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -89,10 +88,8 @@ button:hover {
 
   header h1 {
     font-size: clamp(1.1rem, 2vw + 1rem, 1.6rem);
-    margin-bottom: 0.5rem;
   }
 
-  /* Make the filter bar full width */
   header > div {
     width: 100% !important;
     justify-content: center !important;
@@ -100,7 +97,6 @@ button:hover {
     gap: 0.5rem !important;
   }
 
-  /* Adjust dropdowns and inputs in the FilterBar */
   select,
   input[type="date"],
   button {
@@ -109,9 +105,14 @@ button:hover {
     font-size: 14px !important;
   }
 
-  /* Make the Group By menu appear above other elements */
-  [style*="position: relative"][style*="cursor: pointer"] {
-    z-index: 1000 !important;
+  /* Stack the dashboard modules vertically */
+  body > div > div[style*="display: grid"] {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+  }
+
+  /* Slightly reduce padding so modules fit better */
+  body {
+    padding: 0.5rem !important;
   }
 }
-

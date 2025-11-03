@@ -4,13 +4,29 @@ import { motion } from "framer-motion";
 const EngagementTrend = ({ data, loading, error }) => {
   const trendData = data?.trend || [];
 
-  // SVG setup
-  const width = 280;
-  const height = 120;
-  const xStep = width / (trendData.length - 1 || 1);
-  const points = trendData
-    .map((d, i) => `${20 + i * xStep},${110 - (d.score / 100) * 100}`)
-    .join(" ");
+  // Chart bounds
+  const chartLeft = 30;
+  const chartRight = 300;
+  const chartTop = 10;
+  const chartBottom = 110;
+  const chartHeight = chartBottom - chartTop;
+  const chartWidth = chartRight - chartLeft;
+
+  // Compute line points safely
+  let points = "";
+  if (trendData.length > 0) {
+    const xStep = chartWidth / Math.max(1, trendData.length - 1);
+    points = trendData
+      .map((d, i) => {
+        const clamped = Math.min(100, Math.max(0, d.score)); // ensure valid range
+        const x = chartLeft + i * xStep;
+        const y = chartBottom - (clamped / 100) * chartHeight;
+        return `${x},${y}`;
+      })
+      .join(" ");
+  }
+
+  const hasData = trendData.length > 1;
 
   return (
     <div
@@ -85,20 +101,20 @@ const EngagementTrend = ({ data, loading, error }) => {
           <line x1="20" y1="10" x2="20" y2="110" stroke="#999" strokeWidth="1" />
 
           {/* Grid lines */}
-          {[30, 50, 70, 90].map((y) => (
+          {[25, 50, 75, 100].map((y) => (
             <line
               key={y}
               x1="20"
-              y1={110 - (y / 100) * 100}
+              y1={chartBottom - (y / 100) * chartHeight}
               x2="300"
-              y2={110 - (y / 100) * 100}
+              y2={chartBottom - (y / 100) * chartHeight}
               stroke="#eee"
               strokeWidth="0.5"
             />
           ))}
 
           {/* Trend line + points */}
-          {!loading && trendData.length > 0 && (
+          {!loading && hasData && (
             <>
               <motion.polyline
                 fill="none"
@@ -128,7 +144,7 @@ const EngagementTrend = ({ data, loading, error }) => {
             </>
           )}
 
-          {/* Loading / Error */}
+          {/* Loading / Error / No data */}
           {loading && (
             <text x="160" y="70" textAnchor="middle" fontSize="14" fill="#8c7732">
               Loading...
@@ -139,30 +155,39 @@ const EngagementTrend = ({ data, loading, error }) => {
               Failed to load trend
             </text>
           )}
+          {!loading && !error && !hasData && (
+            <text x="160" y="70" textAnchor="middle" fontSize="13" fill="#999">
+              No data available
+            </text>
+          )}
 
           {/* X-axis labels */}
-          {trendData.map((d, i) => (
-            <text
-              key={d.date}
-              x={20 + i * xStep}
-              y="125"
-              textAnchor="middle"
-              fontSize="11"
-              fill="#333"
-            >
-              {new Date(d.date).toLocaleDateString("en-US", {
-                month: "numeric",
-                day: "numeric",
-              })}
-            </text>
-          ))}
+          {trendData.map((d, i) => {
+            const xStep = chartWidth / Math.max(1, trendData.length - 1);
+            const x = chartLeft + i * xStep;
+            return (
+              <text
+                key={d.date}
+                x={x}
+                y="125"
+                textAnchor="middle"
+                fontSize="11"
+                fill="#333"
+              >
+                {new Date(d.date).toLocaleDateString("en-US", {
+                  month: "numeric",
+                  day: "numeric",
+                })}
+              </text>
+            );
+          })}
 
           {/* Y-axis labels */}
           {[0, 25, 50, 75, 100].map((val) => (
             <text
               key={val}
               x="5"
-              y={110 - (val / 100) * 100}
+              y={chartBottom - (val / 100) * chartHeight}
               fontSize="10"
               fill="#333"
               textAnchor="start"

@@ -1,26 +1,68 @@
-import React from "react";
-import WordCloud from "react-wordcloud";
+import React, { useEffect, useRef, useState } from "react";
+import * as d3 from "d3";
+import cloud from "d3-cloud";
+import API_BASE_URL from "../config";
 
 const TopicByFeature = ({ feature }) => {
-  // Simulated demo data
-  const simulatedWords = [
-    { text: "Change", value: 28, color: "#6d9b6b" },
-    { text: "Holiday", value: 14, color: "#d1b243" },
-    { text: "Merger", value: 16, color: "#c74a3a" },
-    { text: "Benefits", value: 14, color: "#6d9b6b" },
-    { text: "Hyperion Project", value: 20, color: "#8c7732" },
-    { text: "Layoffs", value: 12, color: "#c74a3a" },
-  ];
+  const svgRef = useRef();
+  const [words, setWords] = useState([]);
 
-  // ✅ Ensure non-empty words array
-  const words = simulatedWords && simulatedWords.length > 0 ? simulatedWords : [{ text: "No data", value: 10 }];
+  useEffect(() => {
+    const fetchWords = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/wordcloud?feature=${feature || "sentiment"}`);
+        const data = await res.json();
+        if (data.status === "ok") setWords(data.words);
+        else setWords([]);
+      } catch (err) {
+        console.error("Error fetching wordcloud:", err);
+        setWords([]);
+      }
+    };
+    fetchWords();
+  }, [feature]);
 
-  const options = {
-    rotations: 2,
-    rotationAngles: [-90, 0],
-    fontSizes: [12, 40],
-    deterministic: true,
-  };
+  useEffect(() => {
+    if (!words || words.length === 0) return;
+    const svgEl = d3.select(svgRef.current);
+    svgEl.selectAll("*").remove();
+
+    const width = 300;
+    const height = 180;
+
+    const layout = cloud()
+      .size([width, height])
+      .words(words.map((d) => ({ ...d, size: d.value * 2 })))
+      .padding(3)
+      .rotate(() => (Math.random() > 0.5 ? 0 : 90))
+      .font("sans-serif")
+      .fontSize((d) => d.size)
+      .on("end", draw);
+
+    layout.start();
+
+    function draw(words) {
+      const group = svgEl
+        .append("g")
+        .attr("transform", `translate(${width / 2},${height / 2})`);
+
+      group
+        .selectAll("text")
+        .data(words)
+        .enter()
+        .append("text")
+        .style("font-size", (d) => `${d.size}px`)
+        .style("fill", (d, i) => {
+          const scale = d3.scaleSequential(d3.interpolateRdYlGn)
+            .domain([0, words.length]);
+          return d.color || scale(i);
+        })
+        .style("font-weight", 600)
+        .attr("text-anchor", "middle")
+        .attr("transform", (d) => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+        .text((d) => d.text);
+    }
+  }, [words]);
 
   return (
     <div
@@ -34,7 +76,7 @@ const TopicByFeature = ({ feature }) => {
         fontFamily: "sans-serif",
       }}
     >
-      {/* Left caption area */}
+      {/* Left caption */}
       <div
         style={{
           backgroundColor: "#1e3558",
@@ -54,7 +96,7 @@ const TopicByFeature = ({ feature }) => {
         </p>
       </div>
 
-      {/* Word cloud */}
+      {/* Right chart */}
       <div
         style={{
           flex: 1,
@@ -68,10 +110,7 @@ const TopicByFeature = ({ feature }) => {
         <h2 style={{ fontWeight: "700", marginBottom: "5px" }}>
           {feature ? feature.toUpperCase() : "FEATURE"} BY TOPIC
         </h2>
-
-        <div style={{ width: "100%", height: "180px" }}>
-          <WordCloud words={words} options={options} />
-        </div>
+        <svg ref={svgRef} width={300} height={180}></svg>
       </div>
     </div>
   );

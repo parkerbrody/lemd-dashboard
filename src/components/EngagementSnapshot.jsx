@@ -1,15 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import API_BASE_URL from "../config";
 
 const EngagementSnapshot = () => {
-  const value = 85; // 0–100
+  const [value, setValue] = useState(0);
+  const [loading, setLoading] = useState(true);
   const size = 200;
   const thickness = 20;
   const radius = size / 2;
   const innerRadius = radius - thickness - 10;
+
+  useEffect(() => {
+    // Fetch engagement score from backend
+    fetch(`${API_BASE_URL}/engagement`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "ok") {
+          setValue(data.current);
+        } else {
+          console.warn("Failed to load engagement:", data.message);
+          setValue(70); // fallback
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching engagement:", err);
+        setValue(70);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   const targetRotation = -90 + (value * 180) / 100;
 
-  // Helper to make a semicircular path segment
+  // Helper to make a semicircular arc path
   const describeArc = (startAngle, endAngle) => {
     const polarToCartesian = (r, angle) => ({
       x: radius + r * Math.cos((angle * Math.PI) / 180),
@@ -31,7 +53,6 @@ const EngagementSnapshot = () => {
         borderRadius: "12px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         overflow: "visible",
-        height: "auto",
         minHeight: "220px",
         fontFamily: "sans-serif",
       }}
@@ -89,32 +110,12 @@ const EngagementSnapshot = () => {
             style={{ overflow: "visible" }}
           >
             {/* Colored arcs */}
-            <path
-              d={describeArc(180, 135)}
-              fill="#c74a3a"
-              stroke="#000"
-              strokeWidth="0.5"
-            />
-            <path
-              d={describeArc(135, 90)}
-              fill="#c6933a"
-              stroke="#000"
-              strokeWidth="0.5"
-            />
-            <path
-              d={describeArc(90, 45)}
-              fill="#d1b243"
-              stroke="#000"
-              strokeWidth="0.5"
-            />
-            <path
-              d={describeArc(45, 0)}
-              fill="#6d9b6b"
-              stroke="#000"
-              strokeWidth="0.5"
-            />
+            <path d={describeArc(180, 135)} fill="#c74a3a" />
+            <path d={describeArc(135, 90)} fill="#c6933a" />
+            <path d={describeArc(90, 45)} fill="#d1b243" />
+            <path d={describeArc(45, 0)} fill="#6d9b6b" />
 
-            {/* Semicircular white mask (thin gauge band) */}
+            {/* Mask to form a gauge band */}
             <path
               d={`
                 M ${radius - innerRadius} ${radius}
@@ -125,36 +126,30 @@ const EngagementSnapshot = () => {
               `}
               fill="white"
             />
-
-            {/* Inner rim for visual polish */}
-            <path
-              d={describeArc(180, 0)}
-              fill="none"
-              stroke="#fff"
-              strokeWidth={thickness / 2.5}
-            />
           </svg>
 
           {/* Needle */}
-          <motion.div
-            initial={{ rotate: -90 }}
-            animate={{ rotate: targetRotation }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: "47.5%",
-              width: "10px",
-              height: radius - 15,
-              background:
-                "linear-gradient(to top, #333 15%, #555 70%, #777 100%)",
-              clipPath: "polygon(50% 6%, 82% 100%, 18% 100%)",
-              borderRadius: "2px",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-              transformOrigin: "bottom center",
-              zIndex: 3,
-            }}
-          />
+          {!loading && (
+            <motion.div
+              initial={{ rotate: -90 }}
+              animate={{ rotate: targetRotation }}
+              transition={{ duration: 1.6, ease: "easeOut" }}
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: "47.5%",
+                width: "10px",
+                height: radius - 15,
+                background:
+                  "linear-gradient(to top, #333 15%, #555 70%, #777 100%)",
+                clipPath: "polygon(50% 6%, 82% 100%, 18% 100%)",
+                borderRadius: "2px",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                transformOrigin: "bottom center",
+                zIndex: 3,
+              }}
+            />
+          )}
 
           {/* Pivot */}
           <div
@@ -165,12 +160,28 @@ const EngagementSnapshot = () => {
               width: "20px",
               height: "20px",
               borderRadius: "50%",
-              background:
-                "radial-gradient(circle at 30% 30%, #666, #222)",
+              background: "radial-gradient(circle at 30% 30%, #666, #222)",
               boxShadow: "0 2px 5px rgba(0,0,0,0.4)",
               zIndex: 4,
             }}
           />
+
+          {/* Loading shimmer */}
+          {loading && (
+            <div
+              style={{
+                position: "absolute",
+                top: "40%",
+                left: 0,
+                right: 0,
+                color: "#8c7732",
+                fontSize: "14px",
+                textAlign: "center",
+              }}
+            >
+              Loading...
+            </div>
+          )}
         </div>
 
         {/* Caption below gauge */}
@@ -180,11 +191,14 @@ const EngagementSnapshot = () => {
             color: "#8c7732",
             fontWeight: 400,
             fontSize: "13px",
-            textAlign: "left",
+            textAlign: "center",
             width: size,
           }}
         >
-          Drill down
+          Current engagement:{" "}
+          <span style={{ fontWeight: 600, color: "#1e3558" }}>
+            {Math.round(value)}%
+          </span>
         </div>
       </div>
     </div>

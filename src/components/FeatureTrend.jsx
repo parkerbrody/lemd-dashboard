@@ -19,6 +19,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
   const [chartType, setChartType] = useState("line");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [teams, setTeams] = useState([]);
   const defaultStart = useRef(null);
   const defaultEnd = useRef(null);
 
@@ -37,6 +38,21 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
       if (typeof setEndDate === "function") setEndDate(endStr);
     }
   }, [startDate, endDate, setStartDate, setEndDate]);
+
+  // --- Fetch /metadata to get teams ---
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/metadata`);
+        const json = await res.json();
+        if (json?.status === "ok" && Array.isArray(json.teams)) {
+          setTeams(json.teams);
+        }
+      } catch (e) {
+        console.warn("⚠️ metadata fetch failed", e);
+      }
+    })();
+  }, []);
 
   // --- Helper: generate a date range ---
   const getDateRange = (start, end) => {
@@ -98,6 +114,23 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
     fetchTrendData();
   }, [feature, startDate, endDate, selectedGroup]);
 
+  // --- Determine label (member vs team) ---
+  const isTeam =
+    selectedGroup &&
+    teams.map((t) => t.toLowerCase()).includes(selectedGroup.toLowerCase());
+  const viewLabel = (() => {
+    const f = feature
+    ? feature.charAt(0).toUpperCase() + feature.slice(1).toLowerCase()
+    : "Feature";
+    if (selectedGroup) {
+      return isTeam
+        ? `Viewing ${f} for Team: ${selectedGroup}`
+        : `Viewing ${f} for Member: ${selectedGroup}`;
+    } else {
+      return `Viewing ${f} for All Messages`;
+    }
+  })();
+
   // --- Chart setup ---
   const colors = {
     positive: "#6d9b6b",
@@ -115,7 +148,6 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
   const formatDate = (d) =>
     new Date(d).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" });
 
-  // --- Guards ---
   const showEmpty = !loading && !error && (!trendData || trendData.length === 0);
 
   return (
@@ -170,9 +202,23 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
           color: "#1e3558",
         }}
       >
-        <h2 style={{ fontWeight: "700", marginBottom: "5px", textAlign: "center" }}>
+        <h2 style={{ fontWeight: "700", marginBottom: "3px", textAlign: "center" }}>
           {feature ? feature.toUpperCase() : "FEATURE"} TREND
         </h2>
+
+        {/* Updated label line */}
+        <p
+          style={{
+            marginTop: 0,
+            marginBottom: "8px",
+            fontSize: "13px",
+            color: "#8c7732",
+            fontWeight: 500,
+            textAlign: "center",
+          }}
+        >
+          {viewLabel}
+        </p>
 
         {/* Chart type toggle */}
         <div
@@ -235,11 +281,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
                     tickFormatter={formatDate}
                     padding={{ left: 10, right: 10 }}
                   />
-                  <YAxis
-                    domain={[0, 100]}
-                    ticks={[0, 25, 50, 75, 100]}
-                    tick={{ fontSize: 11 }}
-                  />
+                  <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={{ fontSize: 11 }} />
                   <Tooltip labelFormatter={formatDate} />
                   <Legend />
                   {keys.map((k) => (
@@ -264,11 +306,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
                     tickFormatter={formatDate}
                     padding={{ left: 10, right: 10 }}
                   />
-                  <YAxis
-                    domain={[0, 100]}
-                    ticks={[0, 25, 50, 75, 100]}
-                    tick={{ fontSize: 11 }}
-                  />
+                  <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={{ fontSize: 11 }} />
                   <Tooltip labelFormatter={formatDate} />
                   <Legend />
                   {keys.map((k) => (

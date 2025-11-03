@@ -61,13 +61,6 @@ button:hover {
   border-color: #646cff;
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
 /* Each widget cell */
 .widget {
   background: var(--widget-bg, white);
@@ -77,9 +70,18 @@ button:hover {
   padding: 1rem;
 }
 
-/* Force mobile layout on narrow or portrait/touch devices */
-@media (pointer: coarse), (max-aspect-ratio: 4/5), (max-width: 1200px) and (orientation: portrait) {
-  body > div > div[style*="display: grid"] {
+/* Desktop (default): 2x2 grid, horizontal header */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Force stacking only on clearly mobile/touch devices */
+@media (pointer: coarse) and (orientation: portrait), (max-width: 750px) {
+  .dashboard-grid {
     grid-template-columns: 1fr !important;
     grid-template-rows: auto !important;
   }
@@ -87,20 +89,18 @@ button:hover {
   header {
     flex-direction: column !important;
     align-items: stretch !important;
-    gap: 1rem !important;
     text-align: center;
   }
 
   header > div {
     flex-wrap: wrap !important;
     justify-content: center !important;
-    width: 100% !important;
   }
 
   select,
   input[type="date"],
   button {
-    width: 95% !important;
+    width: 90% !important;
     max-width: 350px !important;
   }
 }

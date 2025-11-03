@@ -3,9 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-
   "homepage": "https://parkerbrody.github.io/lemd-dashboard",
-
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -14,15 +12,15 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-
   "dependencies": {
+    "d3-cloud": "^1.2.7",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-wordcloud": "^1.2.7",
     "recharts": "^3.3.0"
   },
-
   "devDependencies": {
     "@eslint/js": "^9.36.0",
     "@types/react": "^19.1.16",

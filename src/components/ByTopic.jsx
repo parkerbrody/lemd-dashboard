@@ -1,33 +1,57 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import WordCloud from "react-wordcloud";
+import API_BASE_URL from "../config";
 
 const TopicByFeature = ({ feature }) => {
+  const [topics, setTopics] = useState([]);
+
+  useEffect(() => {
+    if (!feature) return;
+    fetch(`${API_BASE_URL}/topics?feature=${feature}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "ok") setTopics(data.topics);
+      })
+      .catch((err) => console.error("Failed to fetch topics:", err));
+  }, [feature]);
+
+  const getColor = (topic) => {
+    if (feature === "sentiment") {
+      const score = (topic.positive ?? 0) - (topic.negative ?? 0);
+      if (score > 0.4) return "#6d9b6b"; // green = positive
+      if (score < -0.4) return "#c74a3a"; // red = negative
+      return "#d1b243"; // neutral yellow
+    }
+    if (feature === "energy") {
+      const yes = topic.yes ?? 0.5;
+      return yes > 0.6 ? "#6d9b6b" : yes < 0.4 ? "#c74a3a" : "#d1b243";
+    }
+    if (feature === "politeness") {
+      const polite = topic.polite ?? 0.5;
+      return polite > 0.6 ? "#6d9b6b" : polite < 0.4 ? "#c74a3a" : "#d1b243";
+    }
+    return "#8c7732";
+  };
+
   const words = useMemo(
-    () => [
-      { text: "Change", size: 28 },
-      { text: "Holiday", size: 14 },
-      { text: "Merger", size: 16 },
-      { text: "Company", size: 18 },
-      { text: "Benefits", size: 14 },
-      { text: "ABC", size: 12 },
-      { text: "Christmas Break", size: 12 },
-      { text: "Hyperion Project", size: 20 },
-      { text: "Layoffs", size: 14 },
-    ],
-    []
+    () =>
+      topics.map((t) => ({
+        text: t.word,
+        value: t.freq,
+        color: getColor(t),
+      })),
+    [topics, feature]
   );
 
-  // Randomized positioning + rotation for a natural word cloud
-  const positionedWords = useMemo(
-    () =>
-      words.map((word) => ({
-        ...word,
-        top: `${Math.random() * 70 + 5}%`,
-        left: `${Math.random() * 80 + 5}%`,
-        rotate: Math.random() > 0.5 ? 0 : -90,
-        color: "#1e3558",
-      })),
-    [words]
-  );
+  const options = {
+    rotations: 2, // mix of horizontal & vertical
+    rotationAngles: [0, 90],
+    fontSizes: [14, 45],
+    fontFamily: "sans-serif",
+    deterministic: false,
+    enableTooltip: false,
+    colors: words.map((w) => w.color),
+  };
 
   return (
     <div
@@ -40,7 +64,6 @@ const TopicByFeature = ({ feature }) => {
         minHeight: "250px",
         height: "auto",
         fontFamily: "sans-serif",
-        position: "relative",
       }}
     >
       {/* Left caption area */}
@@ -55,17 +78,11 @@ const TopicByFeature = ({ feature }) => {
           justifyContent: "center",
         }}
       >
-        <h3
-          style={{
-            marginBottom: "10px",
-            fontSize: "14px",
-            letterSpacing: "0.5px",
-          }}
-        >
+        <h3 style={{ marginBottom: "10px", fontSize: "14px", letterSpacing: "0.5px" }}>
           BY TOPIC
         </h3>
         <p style={{ fontSize: "13px", lineHeight: "1.4", margin: 0 }}>
-          Monitor {feature} by topic.
+          Monitor {feature || "feature"} by topic.
         </p>
       </div>
 
@@ -79,43 +96,19 @@ const TopicByFeature = ({ feature }) => {
           justifyContent: "space-between",
           padding: "10px 20px",
           color: "#1e3558",
-          position: "relative",
         }}
       >
         <h2 style={{ fontWeight: "700", marginBottom: "5px" }}>
-          {feature} BY TOPIC
+          {feature ? feature.toUpperCase() : "FEATURE"} BY TOPIC
         </h2>
 
         {/* Word Cloud */}
-        <div
-          style={{
-            position: "relative",
-            width: "100%",
-            height: "140px",
-            flex: "0 0 auto",
-            overflow: "hidden",
-          }}
-        >
-          {positionedWords.map((word, i) => (
-            <span
-              key={i}
-              style={{
-                position: "absolute",
-                top: word.top,
-                left: word.left,
-                transform: `rotate(${word.rotate}deg)`,
-                fontSize: `${word.size}px`,
-                fontWeight: 600,
-                color: word.color,
-                opacity: 0.9,
-                whiteSpace: "nowrap",
-                pointerEvents: "none",
-                textShadow: "0 1px 2px rgba(0,0,0,0.15)",
-              }}
-            >
-              {word.text}
-            </span>
-          ))}
+        <div style={{ width: "100%", height: "150px" }}>
+          {words.length > 0 ? (
+            <WordCloud words={words} options={options} />
+          ) : (
+            <p style={{ color: "#8c7732" }}>Select a feature to view topics.</p>
+          )}
         </div>
 
         {/* Bottom actions */}
@@ -131,7 +124,7 @@ const TopicByFeature = ({ feature }) => {
           }}
         >
           <span>Drill down</span>
-          <span>Explore {feature}</span>
+          <span>Explore {feature || "feature"}</span>
         </div>
       </div>
     </div>

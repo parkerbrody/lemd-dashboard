@@ -1,84 +1,141 @@
-import React, { useEffect, useState } from "react";
-import API_BASE_URL from "../config";
+import React, { useMemo } from "react";
 
-const ByTopic = ({ feature }) => {
-  const [topics, setTopics] = useState([]);
+const TopicByFeature = ({ feature }) => {
+  const words = useMemo(
+    () => [
+      { text: "Change", size: 28 },
+      { text: "Holiday", size: 14 },
+      { text: "Merger", size: 16 },
+      { text: "Company", size: 18 },
+      { text: "Benefits", size: 14 },
+      { text: "ABC", size: 12 },
+      { text: "Christmas Break", size: 12 },
+      { text: "Hyperion Project", size: 20 },
+      { text: "Layoffs", size: 14 },
+    ],
+    []
+  );
 
-  useEffect(() => {
-    if (!feature) return;
-    fetch(`${API_BASE_URL}/topics?feature=${feature}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "ok") setTopics(data.topics);
-      })
-      .catch((err) => console.error("Failed to fetch topics:", err));
-  }, [feature]);
-
-  const getColor = (topic) => {
-    if (feature === "sentiment") {
-      const score = (topic.positive || 0) - (topic.negative || 0);
-      if (score > 0.4) return "#6d9b6b"; // green = positive
-      if (score < -0.4) return "#c74a3a"; // red = negative
-      return "#d1b243"; // neutral yellow
-    }
-
-    if (feature === "energy") {
-      const prob = topic.yes ?? 0.5;
-      return prob > 0.6 ? "#6d9b6b" : prob < 0.4 ? "#c74a3a" : "#d1b243";
-    }
-
-    if (feature === "politeness") {
-      const prob = topic.polite ?? 0.5;
-      return prob > 0.6 ? "#6d9b6b" : prob < 0.4 ? "#c74a3a" : "#d1b243";
-    }
-
-    return "#8c7732";
-  };
-
-  const maxFreq = Math.max(...topics.map((t) => t.freq), 1);
+  // Randomized positioning + rotation for a natural word cloud
+  const positionedWords = useMemo(
+    () =>
+      words.map((word) => ({
+        ...word,
+        top: `${Math.random() * 70 + 5}%`,
+        left: `${Math.random() * 80 + 5}%`,
+        rotate: Math.random() > 0.5 ? 0 : -90,
+        color: "#1e3558",
+      })),
+    [words]
+  );
 
   return (
     <div
       style={{
+        display: "flex",
         background: "white",
-        borderRadius: "12px",
-        padding: "20px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-        textAlign: "center",
+        borderRadius: "0px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        overflow: "hidden",
         minHeight: "250px",
+        height: "auto",
+        fontFamily: "sans-serif",
+        position: "relative",
       }}
     >
-      <h3 style={{ color: "#1e3558" }}>
-        {feature ? `${feature[0].toUpperCase() + feature.slice(1)} by Topic` : "By Topic"}
-      </h3>
-
-      {topics.length > 0 ? (
-        <div
+      {/* Left caption area */}
+      <div
+        style={{
+          backgroundColor: "#1e3558",
+          color: "white",
+          padding: "24px",
+          width: "30%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
+        <h3
           style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: "10px",
+            marginBottom: "10px",
+            fontSize: "14px",
+            letterSpacing: "0.5px",
           }}
         >
-          {topics.map((t) => (
+          BY TOPIC
+        </h3>
+        <p style={{ fontSize: "13px", lineHeight: "1.4", margin: 0 }}>
+          Monitor {feature} by topic.
+        </p>
+      </div>
+
+      {/* Right content area */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 20px",
+          color: "#1e3558",
+          position: "relative",
+        }}
+      >
+        <h2 style={{ fontWeight: "700", marginBottom: "5px" }}>
+          {feature} BY TOPIC
+        </h2>
+
+        {/* Word Cloud */}
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            height: "140px",
+            flex: "0 0 auto",
+            overflow: "hidden",
+          }}
+        >
+          {positionedWords.map((word, i) => (
             <span
-              key={t.word}
+              key={i}
               style={{
-                fontSize: `${10 + (t.freq / maxFreq) * 28}px`,
-                color: getColor(t),
+                position: "absolute",
+                top: word.top,
+                left: word.left,
+                transform: `rotate(${word.rotate}deg)`,
+                fontSize: `${word.size}px`,
                 fontWeight: 600,
+                color: word.color,
+                opacity: 0.9,
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+                textShadow: "0 1px 2px rgba(0,0,0,0.15)",
               }}
             >
-              {t.word}
+              {word.text}
             </span>
           ))}
         </div>
-      ) : (
-        <p style={{ color: "#8c7732" }}>Select a feature to view topics.</p>
-      )}
+
+        {/* Bottom actions */}
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "10px",
+            color: "#8c7732",
+            fontWeight: 400,
+            fontSize: "13px",
+          }}
+        >
+          <span>Drill down</span>
+          <span>Explore {feature}</span>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default ByTopic;
+export default TopicByFeature;

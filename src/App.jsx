@@ -78,7 +78,9 @@ function App() {
         }}
       >
         <EngagementSnapshot />
-        <ByTopic />
+        <ByTopic 
+          feature={selectedFeature}
+        />
         <EngagementTrend />
         <FeatureTrend
           feature={selectedFeature}

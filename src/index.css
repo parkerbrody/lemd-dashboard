@@ -78,7 +78,7 @@ button:hover {
 }
 
 /* --- Responsive layout for mobile and narrow screens --- */
-@media (max-width: 1000px), (orientation: portrait) {
+@media (max-width: 1100px), (orientation: portrait) {
   /* Stack the header elements vertically */
   header {
     flex-direction: column !important;

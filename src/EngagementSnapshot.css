@@ -1,7 +1,9 @@
 .engagement-snapshot {
   display: flex;
   align-items: stretch;
-  height: 220px; /* smaller height */
+  height: 220px;
+  overflow: hidden;             /* ✅ ensure child colors can’t leak past curve */
+  border-radius: 12px;          /* ✅ gives internal rounding if not already inherited */
 }
 
 /* Left caption area */
@@ -11,6 +13,8 @@
   color: white;
   padding: 1rem;
   font-size: 0.85rem;
+  border-top-left-radius: 12px;     /* ✅ match outer rounding */
+  border-bottom-left-radius: 12px;  /* ✅ match outer rounding */
 }
 
 /* Gauge area */
@@ -20,6 +24,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: white;            /* ✅ ensures clean visual separation */
 }
 
 .gauge {

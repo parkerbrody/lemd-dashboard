@@ -154,7 +154,7 @@ const EngagementSnapshot = ({ startDate, endDate, selectedGroup }) => {
             position: "relative",
             width: size,
             height: size / 2,
-            overflow: "visible",
+            overflow: "hidden",
           }}
         >
           <svg width={size} height={size / 2} viewBox={`0 0 ${size} ${size / 2}`}>

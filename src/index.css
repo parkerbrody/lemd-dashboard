@@ -79,6 +79,14 @@ button:hover {
   padding: 20px;
 }
 
+/* Apply rounded corners & shadow to every grid item */
+.dashboard-grid > * {
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
 /* Force stacking only on clearly mobile/touch devices */
 @media (pointer: coarse) and (orientation: portrait), (max-width: 750px) {
   .dashboard-grid {

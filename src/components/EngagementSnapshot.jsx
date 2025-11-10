@@ -92,7 +92,7 @@ const EngagementSnapshot = ({ startDate, endDate, selectedGroup }) => {
         background: "white",
         borderRadius: "12px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-        overflow: "visible",
+        overflow: "hidden", // Ensures curved corners apply uniformly
         minHeight: "220px",
         fontFamily: "sans-serif",
       }}
@@ -103,11 +103,12 @@ const EngagementSnapshot = ({ startDate, endDate, selectedGroup }) => {
           backgroundColor: "#1e3558",
           color: "white",
           padding: "24px",
-          borderRadius: "12px"
           width: "30%",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
+          borderTopLeftRadius: "12px",
+          borderBottomLeftRadius: "12px",
         }}
       >
         <h3 style={{ marginBottom: "10px", fontSize: "14px" }}>

@@ -15,7 +15,7 @@ function useEngagementData() {
   useEffect(() => {
     async function fetchEngagement() {
       try {
-        const res = await fetch("https://parkerlbrody-lemd.hf.space/engagement");
+        const res = await fetch("https://diywry214y4lv.cloudfront.net");
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
         const json = await res.json();
         setData(json);

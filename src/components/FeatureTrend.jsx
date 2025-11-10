@@ -155,7 +155,7 @@ const FeatureTrend = ({ feature, startDate, endDate, setStartDate, setEndDate, s
       style={{
         display: "flex",
         background: "white",
-        borderRadius: "0px",
+        borderRadius: "12px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         overflow: "hidden",
         minHeight: "240px",

@@ -103,6 +103,7 @@ const EngagementSnapshot = ({ startDate, endDate, selectedGroup }) => {
           backgroundColor: "#1e3558",
           color: "white",
           padding: "24px",
+          borderRadius: "12px"
           width: "30%",
           display: "flex",
           flexDirection: "column",
